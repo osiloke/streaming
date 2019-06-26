@@ -99,8 +99,6 @@ func DownloadSegmentURLs(urls []string, folder string, ps *pubsub.PubSub, client
 		reqs = append(reqs, req)
 	}
 	respCh := client.DoBatch(4, reqs...)
-	t := time.NewTicker(time.Second)
-	defer t.Stop()
 
 	for resp := range respCh {
 		url := resp.Request.URL().String()
