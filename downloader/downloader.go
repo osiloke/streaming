@@ -70,6 +70,9 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 	for i := 0; i < len(urls); i++ {
 		filename := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(urls[i]))
 		dst := filepath.Join(folder, filename)
+		if _, err := os.Stat(dst); !os.IsNotExist(err) {
+			continue
+		}
 		req, err := grab.NewRequest(dst, urls[i])
 		if err != nil {
 			return err

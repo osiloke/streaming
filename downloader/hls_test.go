@@ -58,12 +58,12 @@ func Test_PrefixedHlsFilename(t *testing.T) {
 		{
 			"test",
 			args{
-				prefix: "http://localhost:7071/cache?r=1&file=",
+				prefix: "http://127.0.0.1:7071/cache?r=1&file=",
 				url: mustParseURL(
 					"https://audio.udux.com/hls/8b3acdbe-7b5c-4a7e-ae55-aaa61ccd3cf8/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE1ODEwMzcsImlwIjoiMTI5LjU2LjM3LjEzNywxMDQuMTU0LjE2Mi4yMzciLCJ1c2VyX2lkIjoiYUJQc3NvcDFkZ1o3TVh3bkd1T092SlFzcFZ0MiIsInN1YnNjcmlwdGlvbiI6IlJjWnluMlNkN0VHaURmNklnYmVHIiwicGxhbiI6Ilk0YThyMnYydUNGR2FLT1BYMHY0Iiwicm9sZSI6Ik5vVkpRWHh4azdIb0FzOEtlTDM1IiwidHJhY2tfaWQiOiJ0TWk0b3d6VE1QaVJNQVNWMWxkSiIsImRldmljZSI6ImlvcyIsImNvdW50cnkiOiJVUyIsImlhdCI6MTU2MTU3NzQzN30.LsZOLYaKD_d_vPRkH5bqKzNCI8ccg16HaXnBFb6L9p4/tMi4owzTMPiRMASV1ldJ_trd.mp4/index.m3u8?ut=st=1561577317~exp=1561580917~acl=/hls/tMi4owzTMPiRMASV1ldJ_trd.mp4/*~hmac=995956a6e5ba53a91ca3b3adcd107d6e14b0fad31660c4b26b1282946b1b9ff2",
 				),
 			},
-			"78e4a74ae6bf2b87ae5a9ee1cd9ef92c2d87b744c73a265cab5a0a6858944e35",
+			"8f71db1a6b82ad03bc949acc08d38051118ef42033665b47b0ccab018950b638",
 		},
 	}
 	for _, tt := range tests {
