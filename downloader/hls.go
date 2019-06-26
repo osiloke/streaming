@@ -1,6 +1,8 @@
 package downloader
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"net/url"
 	"os"
@@ -11,6 +13,11 @@ import (
 )
 
 var re2 = regexp.MustCompile(`((?:(?:https?|ftp|file)))`)
+
+func hashKey(data string) string {
+	sha := sha256.Sum256([]byte(data))
+	return hex.EncodeToString(sha[:])
+}
 
 // ProxyHLSUrls replace hls urls
 func ProxyHLSUrls(hlsRaw []byte, proxyServerURL string) ([]byte, error) {
@@ -25,7 +32,7 @@ func hlsFilename(url *url.URL) string {
 	filename := fmt.Sprintf("%s%s", pt[len(pt)-2], pt[len(pt)-1])
 	return hashKey(filename)
 }
-func prefixedHlsFilename(prefix string, url *url.URL) string {
+func PrefixedHlsFilename(prefix string, url *url.URL) string {
 	pt := strings.Split(url.Path, "/")
 	filename := fmt.Sprintf("%s%s", pt[len(pt)-2], pt[len(pt)-1])
 	return hashKey(prefix + filename)
@@ -43,7 +50,7 @@ func GetSegmentURLS(hlsRaw []byte, segmentURLPrefix string) []string {
 
 func completeSegmentDownload(ds *DownloadStatus) {
 	base := filepath.Dir(ds.TempFilename)
-	filename := prefixedHlsFilename(ds.Prefix, mustParseURL(ds.URL))
+	filename := PrefixedHlsFilename(ds.Prefix, mustParseURL(ds.URL))
 	name := filepath.Join(base, filename)
 	os.Rename(ds.TempFilename, name)
 	currenttime := time.Now().Local()

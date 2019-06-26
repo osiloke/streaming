@@ -2,8 +2,6 @@ package downloader
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -34,11 +32,6 @@ type DownloadStatus struct {
 	Progress     string `json:"progress"`
 	Status       string `json:"status"`
 	Error        string `json:"error"`
-}
-
-func hashKey(data string) string {
-	sha := sha256.Sum256([]byte(data))
-	return hex.EncodeToString(sha[:])
 }
 
 func mustParseURL(urlSt string) *url.URL {
@@ -75,7 +68,7 @@ func DownloadHLSURL(url *url.URL, filename, folder, segmentURLPrefix string, ps 
 func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pubsub.PubSub, client *grab.Client) error {
 	reqs := make([]*grab.Request, 0)
 	for i := 0; i < len(urls); i++ {
-		filename := prefixedHlsFilename(segmentURLPrefix, mustParseURL(urls[i]))
+		filename := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(urls[i]))
 		dst := filepath.Join(folder, filename)
 		req, err := grab.NewRequest(dst, urls[i])
 		if err != nil {
@@ -87,7 +80,7 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 
 	for resp := range respCh {
 		url := resp.Request.URL().String()
-		filename := prefixedHlsFilename(segmentURLPrefix, mustParseURL(url))
+		filename := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(url))
 		dst := filepath.Join(folder, filename)
 		if err := resp.Err(); err != nil {
 			ps.Pub(DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
@@ -104,7 +97,7 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSub) error {
 	client := grab.NewClient()
 	sourceURL := mustParseURL(url)
-	filename := prefixedHlsFilename(segmentURLPrefix, sourceURL)
+	filename := PrefixedHlsFilename(segmentURLPrefix, sourceURL)
 	content, err := DownloadHLSURL(sourceURL, filename, storage, segmentURLPrefix, ps)
 	if err != nil {
 		log.Printf("DownloadHLSPlaylist %v", err)
