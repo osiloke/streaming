@@ -18,10 +18,12 @@ import (
 	"github.com/cskr/pubsub"
 )
 
+//EventBus sends events to a listener
 type EventBus interface {
 	SendEvent(channel, message string)
 }
 
+// DownloadStatusChannel is the pubsub channel
 const DownloadStatusChannel = "download_status"
 
 // DownloadStatus represents the status of a download
@@ -108,15 +110,13 @@ func DownloadSegmentURLs(urls []string, folder string, ps *pubsub.PubSub, client
 			ps.Pub(DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
 			return err
 		}
-		ps.Pub(DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}, DownloadStatusChannel)
+		ds := DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}
+		completeSegmentDownload(&ds)
+		ps.Pub(ds, DownloadStatusChannel)
 	}
 	return nil
 }
 
-// // DownloadSegmentURLs takes an array of urls to be downloaded
-// func DownloadSegmentURLs(urls []string, folder string, ps *pubsub.PubSub) error{
-// 	return nil
-// }
 // DownloadHLSPlaylist download an HLS playlist
 func DownloadHLSPlaylist(url, storage string, ps *pubsub.PubSub) error {
 	client := grab.NewClient()
@@ -130,4 +130,25 @@ func DownloadHLSPlaylist(url, storage string, ps *pubsub.PubSub) error {
 	urls := GetSegmentURLS(content)
 	log.Printf("GetSegmentURLS %+v", urls)
 	return DownloadSegmentURLs(urls, storage, ps, client)
+}
+
+// IsHSLPlaylistDownloaded checks if an hls file has downloaded
+func IsHSLPlaylistDownloaded(url, folder string) bool {
+	sourceURL := mustParseURL(url)
+	filename := hlsFilename(sourceURL)
+	dst := filepath.Join(folder, filename)
+	if _, err := os.Stat(dst); os.IsNotExist(err) {
+		return false
+	}
+	data, err := ioutil.ReadFile(dst)
+	if err != nil {
+		return false
+	}
+	urls := GetSegmentURLS(data)
+	for _, url := range urls {
+		if !segmentExists(url, folder) {
+			return false
+		}
+	}
+	return true
 }
