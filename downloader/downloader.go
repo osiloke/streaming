@@ -68,7 +68,6 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 	reqs := make([]*grab.Request, 0)
 	for i := 0; i < len(urls); i++ {
 		filename := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(urls[i]))
-		log.Debug.Println("DownloadSegmentURLs", segmentURLPrefix, urls[i], filename)
 		dst := filepath.Join(folder, filename)
 		if _, err := os.Stat(dst); !os.IsNotExist(err) {
 			continue
@@ -90,7 +89,7 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 			return err
 		}
 		ds := DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}
-		// completeSegmentDownload(&ds)
+		completeSegmentDownload(&ds)
 		ps.Pub(ds, DownloadStatusChannel)
 	}
 	return nil

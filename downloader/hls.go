@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -48,12 +49,21 @@ func GetSegmentURLS(hlsRaw []byte, segmentURLPrefix string) []string {
 	return found
 }
 
+func randate() time.Time {
+	min := time.Date(1987, 1, 0, 0, 0, 0, 0, time.UTC).Unix()
+	max := time.Now().Unix()
+	delta := max - min
+
+	sec := rand.Int63n(delta) + min
+	return time.Unix(sec, 0)
+}
+
 func completeSegmentDownload(ds *DownloadStatus) {
 	base := filepath.Dir(ds.TempFilename)
 	filename := PrefixedHlsFilename(ds.Prefix, mustParseURL(ds.URL))
 	name := filepath.Join(base, filename)
-	os.Rename(ds.TempFilename, name)
-	currenttime := time.Now().Local()
+	// os.Rename(ds.TempFilename, name)
+	currenttime := randate()
 	os.Chtimes(name, currenttime, currenttime)
 }
 
