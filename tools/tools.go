@@ -7,11 +7,13 @@ import (
 	"github.com/osiloke/streaming/downloader"
 )
 
+// EventBus event sender
 type EventBus interface {
 	SendMessageEvent(channel, message string)
 }
 
-func GetHLS(url, storage string, dispatcher EventBus) string {
+// GetHLS get hls and store locally
+func GetHLS(url, storage, segmentURLPrefix string, dispatcher EventBus) string {
 	ps := pubsub.New(1)
 	ch := ps.Sub(downloader.DownloadStatusChannel)
 	go func() {
@@ -21,6 +23,6 @@ func GetHLS(url, storage string, dispatcher EventBus) string {
 			dispatcher.SendMessageEvent("DOWNLOAD_STATUS", string(v))
 		}
 	}()
-	downloader.DownloadHLSPlaylist(url, storage, ps)
+	downloader.DownloadHLSPlaylist(url, storage, segmentURLPrefix, ps)
 	return "done"
 }
