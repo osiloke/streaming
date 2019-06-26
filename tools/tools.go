@@ -14,7 +14,7 @@ func GetHLS(url, storage string, dispatcher EventBus) string {
 	ch := ps.Sub(downloader.DownloadStatusChannel)
 	go func() {
 		for c := range ch {
-			status := c.(*downloader.DownloadStatus)
+			status := c.(downloader.DownloadStatus)
 			dispatcher.SendMessageEvent("DOWNLOAD_STATUS", status.URL)
 		}
 	}()
