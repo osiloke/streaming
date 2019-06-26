@@ -60,7 +60,7 @@ func DownloadHLSURL(url *url.URL, filename, folder, segmentURLPrefix string, ps 
 	elapsed := time.Since(start)
 	log.Debug.Printf("downloaded %s to %s - %s", url, dst, elapsed)
 
-	return []byte(strings.TrimSpace(string(proxiedBody))), err
+	return []byte(strings.TrimSpace(string(body))), err
 }
 
 // DownloadSegmentURLs takes an array of urls to be downloaded
