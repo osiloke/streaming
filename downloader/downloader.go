@@ -2,17 +2,19 @@ package downloader
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"io/ioutil" 
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	"github.com/osiloke/streaming/log"
+
 	"github.com/cavaliercoder/grab"
 	"github.com/cskr/pubsub"
+	"github.com/osiloke/streaming/log"
 )
 
 //EventBus sends events to a listener
@@ -45,6 +47,9 @@ func DownloadHLSURL(url *url.URL, filename, folder, segmentURLPrefix string, ps 
 	resp, err := http.Get(url.String())
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, errors.New("unable to retrieve hls")
 	}
 	defer resp.Body.Close()
 	dst := filepath.Join(folder, filename)
@@ -85,6 +90,7 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 		filename := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(url))
 		dst := filepath.Join(folder, filename)
 		if err := resp.Err(); err != nil {
+			os.Remove(filename)
 			ps.Pub(DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
 			return err
 		}
@@ -92,6 +98,7 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 		completeSegmentDownload(&ds)
 		ps.Pub(ds, DownloadStatusChannel)
 	}
+	log.Debug.Printf("Downloaded %v segments\n", len(reqs))
 	return nil
 }
 
