@@ -1,10 +1,10 @@
 package downloader
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -30,6 +30,7 @@ const DownloadStatusChannel = "download_status"
 type DownloadStatus struct {
 	URL          string `json:"url"`
 	TempFilename string `json:"tempFilename"`
+	Prefix       string `json:"prefix"`
 	Progress     string `json:"progress"`
 	Status       string `json:"status"`
 	Error        string `json:"error"`
@@ -45,19 +46,8 @@ func mustParseURL(urlSt string) *url.URL {
 	return u
 }
 
-func hlsFilename(url *url.URL) string {
-	pt := strings.Split(url.Path, "/")
-	filename := fmt.Sprintf("%s%s", pt[len(pt)-2], pt[len(pt)-1])
-	return hashKey((filename))
-}
-func prefixedHlsFilename(prefix string, url *url.URL) string {
-	pt := strings.Split(url.Path, "/")
-	filename := fmt.Sprintf("%s%s", pt[len(pt)-2], pt[len(pt)-1])
-	return hashKey((prefix + filename))
-}
-
 // DownloadHLSURL download a url to a file
-func DownloadHLSURL(url *url.URL, filename, folder string, ps *pubsub.PubSub) ([]byte, error) {
+func DownloadHLSURL(url *url.URL, filename, folder, segmentURLPrefix string, ps *pubsub.PubSub) ([]byte, error) {
 	start := time.Now()
 	// done := make(chan int64)
 	resp, err := http.Get(url.String())
@@ -66,18 +56,11 @@ func DownloadHLSURL(url *url.URL, filename, folder string, ps *pubsub.PubSub) ([
 	}
 	defer resp.Body.Close()
 	dst := filepath.Join(folder, filename)
-	out, err := os.Create(dst)
-	if err != nil {
-		return nil, err
-	}
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		out.Close()
-		return nil, err
-	}
-	out.Close()
-
-	buf, err := ioutil.ReadFile(dst)
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	body := buf.Bytes()
+	proxiedBody, _ := ProxyHLSUrls(body, segmentURLPrefix)
+	err = ioutil.WriteFile(dst, proxiedBody, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -85,14 +68,14 @@ func DownloadHLSURL(url *url.URL, filename, folder string, ps *pubsub.PubSub) ([
 	elapsed := time.Since(start)
 	log.Printf("downloaded %s to %s - %s", url, dst, elapsed)
 
-	return []byte(strings.TrimSpace(string(buf))), err
+	return []byte(strings.TrimSpace(string(proxiedBody))), err
 }
 
 // DownloadSegmentURLs takes an array of urls to be downloaded
-func DownloadSegmentURLs(urls []string, folder string, ps *pubsub.PubSub, client *grab.Client) error {
+func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pubsub.PubSub, client *grab.Client) error {
 	reqs := make([]*grab.Request, 0)
 	for i := 0; i < len(urls); i++ {
-		filename := hlsFilename(mustParseURL(urls[i]))
+		filename := prefixedHlsFilename(segmentURLPrefix, mustParseURL(urls[i]))
 		dst := filepath.Join(folder, filename)
 		req, err := grab.NewRequest(dst, urls[i])
 		if err != nil {
@@ -104,13 +87,13 @@ func DownloadSegmentURLs(urls []string, folder string, ps *pubsub.PubSub, client
 
 	for resp := range respCh {
 		url := resp.Request.URL().String()
-		filename := hlsFilename(mustParseURL(url))
+		filename := prefixedHlsFilename(segmentURLPrefix, mustParseURL(url))
 		dst := filepath.Join(folder, filename)
 		if err := resp.Err(); err != nil {
-			ps.Pub(DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
+			ps.Pub(DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
 			return err
 		}
-		ds := DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}
+		ds := DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}
 		completeSegmentDownload(&ds)
 		ps.Pub(ds, DownloadStatusChannel)
 	}
@@ -118,21 +101,21 @@ func DownloadSegmentURLs(urls []string, folder string, ps *pubsub.PubSub, client
 }
 
 // DownloadHLSPlaylist download an HLS playlist
-func DownloadHLSPlaylist(url, storage string, ps *pubsub.PubSub) error {
+func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSub) error {
 	client := grab.NewClient()
 	sourceURL := mustParseURL(url)
-	filename := hlsFilename(sourceURL)
-	content, err := DownloadHLSURL(sourceURL, filename, storage, ps)
+	filename := prefixedHlsFilename(segmentURLPrefix, sourceURL)
+	content, err := DownloadHLSURL(sourceURL, filename, storage, segmentURLPrefix, ps)
 	if err != nil {
 		log.Printf("DownloadHLSPlaylist %v", err)
 		return err
 	}
-	urls := GetSegmentURLS(content)
-	return DownloadSegmentURLs(urls, storage, ps, client)
+	urls := GetSegmentURLS(content, segmentURLPrefix)
+	return DownloadSegmentURLs(urls, storage, segmentURLPrefix, ps, client)
 }
 
 // IsHSLPlaylistDownloaded checks if an hls file has downloaded
-func IsHSLPlaylistDownloaded(url, folder string) bool {
+func IsHSLPlaylistDownloaded(url, folder, segmentURLPrefix string) bool {
 	sourceURL := mustParseURL(url)
 	filename := hlsFilename(sourceURL)
 	dst := filepath.Join(folder, filename)
@@ -143,7 +126,7 @@ func IsHSLPlaylistDownloaded(url, folder string) bool {
 	if err != nil {
 		return false
 	}
-	urls := GetSegmentURLS(data)
+	urls := GetSegmentURLS(data, segmentURLPrefix)
 	for _, url := range urls {
 		if !segmentExists(url, folder) {
 			return false
