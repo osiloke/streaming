@@ -105,10 +105,10 @@ func DownloadSegmentURLs(urls []string, folder string, ps *pubsub.PubSub, client
 		filename := hlsFilename(mustParseURL(url))
 		dst := filepath.Join(folder, filename)
 		if err := resp.Err(); err != nil {
-			ps.Pub(DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress())}, DownloadStatusChannel, "error", err.Error())
+			ps.Pub(DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
 			return err
 		}
-		ps.Pub(DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress())}, DownloadStatusChannel, "done", "")
+		ps.Pub(DownloadStatus{URL: url, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}, DownloadStatusChannel)
 	}
 	return nil
 }
