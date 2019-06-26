@@ -3,15 +3,14 @@ package downloader
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io/ioutil" 
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-
+	"github.com/osiloke/streaming/log"
 	"github.com/cavaliercoder/grab"
 	"github.com/cskr/pubsub"
 )
@@ -59,7 +58,7 @@ func DownloadHLSURL(url *url.URL, filename, folder, segmentURLPrefix string, ps 
 	}
 	// done <- n
 	elapsed := time.Since(start)
-	log.Printf("downloaded %s to %s - %s", url, dst, elapsed)
+	log.Debug.Printf("downloaded %s to %s - %s", url, dst, elapsed)
 
 	return []byte(strings.TrimSpace(string(proxiedBody))), err
 }
@@ -69,6 +68,7 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 	reqs := make([]*grab.Request, 0)
 	for i := 0; i < len(urls); i++ {
 		filename := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(urls[i]))
+		log.Debug.Println("DownloadSegmentURLs", segmentURLPrefix, urls[i], filename)
 		dst := filepath.Join(folder, filename)
 		if _, err := os.Stat(dst); !os.IsNotExist(err) {
 			continue
@@ -90,7 +90,7 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 			return err
 		}
 		ds := DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}
-		completeSegmentDownload(&ds)
+		// completeSegmentDownload(&ds)
 		ps.Pub(ds, DownloadStatusChannel)
 	}
 	return nil
@@ -103,7 +103,7 @@ func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSu
 	filename := PrefixedHlsFilename(segmentURLPrefix, sourceURL)
 	content, err := DownloadHLSURL(sourceURL, filename, storage, segmentURLPrefix, ps)
 	if err != nil {
-		log.Printf("DownloadHLSPlaylist %v", err)
+		log.Debug.Printf("DownloadHLSPlaylist %v", err)
 		return err
 	}
 	urls := GetSegmentURLS(content, segmentURLPrefix)
