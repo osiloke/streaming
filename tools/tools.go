@@ -1,6 +1,8 @@
 package tools
 
 import (
+	"encoding/json"
+
 	"github.com/cskr/pubsub"
 	"github.com/osiloke/streaming/downloader"
 )
@@ -15,7 +17,8 @@ func GetHLS(url, storage string, dispatcher EventBus) string {
 	go func() {
 		for c := range ch {
 			status := c.(downloader.DownloadStatus)
-			dispatcher.SendMessageEvent("DOWNLOAD_STATUS", status.URL)
+			v, _ := json.Marshal(status)
+			dispatcher.SendMessageEvent("DOWNLOAD_STATUS", string(v))
 		}
 	}()
 	downloader.DownloadHLSPlaylist(url, storage, ps)

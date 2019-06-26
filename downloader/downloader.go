@@ -126,8 +126,10 @@ func DownloadHLSPlaylist(url, storage string, ps *pubsub.PubSub) error {
 	filename := hlsFilename(sourceURL)
 	content, err := DownloadHLSURL(sourceURL, filename, storage, ps)
 	if err != nil {
+		log.Printf("DownloadHLSPlaylist %v", err)
 		return err
 	}
 	urls := GetSegmentURLS(content)
+	log.Printf("GetSegmentURLS %+v", urls)
 	return DownloadSegmentURLs(urls, storage, ps, client)
 }
