@@ -28,6 +28,8 @@ const DownloadStatusChannel = "download_status"
 // DownloadStatus represents the status of a download
 type DownloadStatus struct {
 	URL          string `json:"url"`
+	ID 			 string `json:"id"`
+	Segment 	 string `json:"segment"`
 	TempFilename string `json:"tempFilename"`
 	Prefix       string `json:"prefix"`
 	Progress     string `json:"progress"`
@@ -86,12 +88,13 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 	respCh := client.DoBatch(4, reqs...)
 
 	for resp := range respCh {
+		idf := idAndFile(resp.Request.URL())
 		url := resp.Request.URL().String()
 		filename := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(url))
 		dst := filepath.Join(folder, filename)
 		if err := resp.Err(); err != nil {
 			os.Remove(filename)
-			ps.Pub(DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
+			ps.Pub(DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
 			return err
 		}
 		ds := DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}
@@ -112,6 +115,9 @@ func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSu
 		log.Debug.Printf("DownloadHLSPlaylist %v", err)
 		return err
 	}
+	idf := idAndFile(sourceURL)
+	ds := DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "1", Status: "done", Error: ""} 
+	ps.Pub(ds, DownloadStatusChannel)
 	urls := GetSegmentURLS(content, segmentURLPrefix)
 	return DownloadSegmentURLs(urls, storage, segmentURLPrefix, ps, client)
 }
