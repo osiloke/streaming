@@ -43,7 +43,7 @@ func GetMultipleHLS(urls []string, storage, segmentURLPrefix string, dispatcher 
 	}()
 	for _, url := range urls {
 		downloader.DownloadHLSPlaylist(url, storage, segmentURLPrefix, ps)
-		log.Debug.Debugf("Finished storing - %s", url)
+		log.Debug.Printf("Finished storing - %s", url)
 	}
 	ps.Unsub(ch, downloader.DownloadStatusChannel)
 	// close(ch)
