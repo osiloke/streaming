@@ -28,3 +28,22 @@ func GetHLS(url, storage, segmentURLPrefix string, dispatcher EventBus) string {
 	// }()
 	return "done"
 }
+
+// GetMultipleHLS get urls
+func GetMultipleHLS(urls []string, storage, segmentURLPrefix string, dispatcher EventBus) {
+	// tools.GetHLS(url, storage, segmentURLPrefix, dispatcher)
+	ps := pubsub.New(1)
+	ch := ps.Sub(downloader.DownloadStatusChannel)
+	go func() {
+		for c := range ch {
+			status := c.(downloader.DownloadStatus)
+			v, _ := json.Marshal(status)
+			dispatcher.SendMessageEvent("DOWNLOAD_STATUS", string(v))
+		}
+	}()
+	for _, url := range urls {
+		downloader.DownloadHLSPlaylist(url, storage, segmentURLPrefix, ps)
+	}
+	ps.Unsub(ch, downloader.DownloadStatusChannel)
+	close(ch)
+}
