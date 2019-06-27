@@ -28,8 +28,8 @@ const DownloadStatusChannel = "download_status"
 // DownloadStatus represents the status of a download
 type DownloadStatus struct {
 	URL          string `json:"url"`
-	ID 			 string `json:"id"`
-	Segment 	 string `json:"segment"`
+	ID           string `json:"id"`
+	Segment      string `json:"segment"`
 	TempFilename string `json:"tempFilename"`
 	Prefix       string `json:"prefix"`
 	Progress     string `json:"progress"`
@@ -94,10 +94,10 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 		dst := filepath.Join(folder, filename)
 		if err := resp.Err(); err != nil {
 			os.Remove(filename)
-			ps.Pub(DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error", Error: err.Error()}, DownloadStatusChannel)
+			ps.Pub(DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "error downloading segment", Error: err.Error()}, DownloadStatusChannel)
 			return err
 		}
-		ds := DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "done", Error: ""}
+		ds := DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: dst, Progress: fmt.Sprintf("%v", resp.Progress()), Status: "downloaded segment", Error: ""}
 		completeSegmentDownload(&ds)
 		ps.Pub(ds, DownloadStatusChannel)
 	}
@@ -116,10 +116,17 @@ func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSu
 		return err
 	}
 	idf := idAndFile(sourceURL)
-	ds := DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "1", Status: "done", Error: ""} 
+	ds := DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "1", Status: "downloaded index", Error: ""}
 	ps.Pub(ds, DownloadStatusChannel)
 	urls := GetSegmentURLS(content, segmentURLPrefix)
-	return DownloadSegmentURLs(urls, storage, segmentURLPrefix, ps, client)
+	err = DownloadSegmentURLs(urls, storage, segmentURLPrefix, ps, client)
+	if err != nil {
+		return err
+	}
+
+	ds = DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "1", Status: "downloaded hls", Error: ""}
+	ps.Pub(ds, DownloadStatusChannel)
+	return nil
 }
 
 // IsHSLPlaylistDownloaded checks if an hls file has downloaded
