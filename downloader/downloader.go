@@ -109,18 +109,24 @@ func DownloadSegmentURLs(urls []string, folder, segmentURLPrefix string, ps *pub
 func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSub) error {
 	client := grab.NewClient()
 	sourceURL := mustParseURL(url)
+	idf := idAndFile(sourceURL)
 	filename := PrefixedHlsFilename(segmentURLPrefix, sourceURL)
 	content, err := DownloadHLSURL(sourceURL, filename, storage, segmentURLPrefix, ps)
 	if err != nil {
+		ds := DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "0", Status: "failed hls", Error: err.Error()}
+		ps.Pub(ds, DownloadStatusChannel)
+	
 		log.Debug.Printf("DownloadHLSPlaylist %v", err)
 		return err
 	}
-	idf := idAndFile(sourceURL)
 	ds := DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "1", Status: "downloaded index", Error: ""}
 	ps.Pub(ds, DownloadStatusChannel)
 	urls := GetSegmentURLS(content, segmentURLPrefix)
 	err = DownloadSegmentURLs(urls, storage, segmentURLPrefix, ps, client)
 	if err != nil {
+		ds = DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "0", Status: "failed hls", Error: err.Error()}
+		ps.Pub(ds, DownloadStatusChannel)
+	
 		return err
 	}
 

@@ -74,3 +74,31 @@ func Test_PrefixedHlsFilename(t *testing.T) {
 		})
 	}
 }
+
+func Test_idAndFile(t *testing.T) {
+	type args struct {
+		url *url.URL
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			"test",
+			args{
+				url: mustParseURL(
+					"https://audio.udux.com/hls/8b3acdbe-7b5c-4a7e-ae55-aaa61ccd3cf8/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjIxNjk0NjMsImlwIjoiNDUuMjIyLjk4LjI0OSwxMzAuMjExLjIxMS4yMDMiLCJ1c2VyX2lkIjoiYUJQc3NvcDFkZ1o3TVh3bkd1T092SlFzcFZ0MiIsInN1YnNjcmlwdGlvbiI6IlJjWnluMlNkN0VHaURmNklnYmVHIiwicGxhbiI6Ilk0YThyMnYydUNGR2FLT1BYMHY0Iiwicm9sZSI6Ik5vVkpRWHh4azdIb0FzOEtlTDM1IiwidHJhY2tfaWQiOiJqb3k2TUhValQ4cjBTWmF6SGFCVCIsImRldmljZSI6ImlvcyIsImNvdW50cnkiOiJVUyIsImlhdCI6MTU2MjE2NTg2M30.zF4toA_7Q48f_-nNVrfRl8nB94_KGxSaw58a6PJHNDA/joy6MHUjT8r0SZazHaBT_trd.mp4/index.m3u8?ut=st=1562165743~exp=1562169343~acl=/hls/joy6MHUjT8r0SZazHaBT_trd.mp4/*~hmac=bad0be1b8277f68226c82943f9528babf7af9560eb14bd9465b51de49ae6482b",
+				),
+			},
+			[]string{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := idAndFile(tt.args.url); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("idAndFile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
