@@ -28,11 +28,11 @@ func ProxyHLSUrls(hlsRaw []byte, proxyServerURL string) ([]byte, error) {
 
 var re = regexp.MustCompile(`(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?`)
 
-func idAndFile( url *url.URL) []string {
+func idAndFile(url *url.URL) []string {
 	pt := strings.Split(url.Path, "/")
 	id := pt[len(pt)-2]
 	hlspart := pt[len(pt)-1]
-	return []string{strings.Split(id, "_")[0], hlspart}
+	return []string{strings.Split(id, "_trd")[0], hlspart}
 }
 func hlsFilename(url *url.URL) string {
 	pt := strings.Split(url.Path, "/")

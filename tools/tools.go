@@ -24,7 +24,7 @@ func GetHLS(url, storage, segmentURLPrefix string, dispatcher EventBus) string {
 		v, _ := json.Marshal(status)
 		dispatcher.SendMessageEvent("DOWNLOAD_STATUS", string(v))
 	}
-	log.Debug.Println("done")
+	log.Debug.Printf("Finished storing - %s", url)
 	// }()
 	return "done"
 }
