@@ -48,3 +48,39 @@ func GetMultipleHLS(urls []string, storage, segmentURLPrefix string, dispatcher 
 	ps.Unsub(ch, downloader.DownloadStatusChannel)
 	// close(ch)
 }
+
+// RemoveHLS remove hls from local store
+func RemoveHLS(url, storage, segmentURLPrefix string, dispatcher EventBus) string {
+	ps := pubsub.New(1)
+	ch := ps.Sub(downloader.RemoveStatusChannel)
+	go downloader.RemoveHLSPlaylist(url, storage, segmentURLPrefix, ps)
+	// go func() {
+	for c := range ch {
+		status := c.(downloader.RemoveStatus)
+		v, _ := json.Marshal(status)
+		dispatcher.SendMessageEvent("REMOVE_STATUS", string(v))
+	}
+	log.Debug.Printf("Finished removing - %s", url)
+	// }()
+	return "done"
+}
+
+// RemoveMultipleHLS remove hls urls from local store
+func RemoveMultipleHLS(urls []string, storage, segmentURLPrefix string, dispatcher EventBus) {
+	// tools.GetHLS(url, storage, segmentURLPrefix, dispatcher)
+	ps := pubsub.New(1)
+	ch := ps.Sub(downloader.RemoveStatusChannel)
+	go func() {
+		for c := range ch {
+			status := c.(downloader.RemoveStatus)
+			v, _ := json.Marshal(status)
+			dispatcher.SendMessageEvent("REMOVE_STATUS", string(v))
+		}
+	}()
+	for _, url := range urls {
+		downloader.RemoveHLSPlaylist(url, storage, segmentURLPrefix, ps)
+		log.Debug.Printf("Finished removing - %s", url)
+	}
+	ps.Unsub(ch, downloader.RemoveStatusChannel)
+	// close(ch)
+}
