@@ -39,6 +39,8 @@ func hlsFilename(url *url.URL) string {
 	filename := fmt.Sprintf("%s%s", pt[len(pt)-2], pt[len(pt)-1])
 	return hashKey(filename)
 }
+
+// PrefixedHlsFilename generate hashed url with prefix
 func PrefixedHlsFilename(prefix string, url *url.URL) string {
 	pt := strings.Split(url.Path, "/")
 	filename := fmt.Sprintf("%s%s", pt[len(pt)-2], pt[len(pt)-1])

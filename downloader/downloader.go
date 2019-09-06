@@ -25,8 +25,23 @@ type EventBus interface {
 // DownloadStatusChannel is the pubsub channel
 const DownloadStatusChannel = "download_status"
 
+// RemoveStatusChannel is the pubsub channel for remove status
+const RemoveStatusChannel = "remove_status"
+
 // DownloadStatus represents the status of a download
 type DownloadStatus struct {
+	URL          string `json:"url"`
+	ID           string `json:"id"`
+	Segment      string `json:"segment"`
+	TempFilename string `json:"tempFilename"`
+	Prefix       string `json:"prefix"`
+	Progress     string `json:"progress"`
+	Status       string `json:"status"`
+	Error        string `json:"error"`
+}
+
+// RemoveStatus status sent while removing an HLS url from cache
+type RemoveStatus struct {
 	URL          string `json:"url"`
 	ID           string `json:"id"`
 	Segment      string `json:"segment"`
@@ -40,6 +55,31 @@ type DownloadStatus struct {
 func mustParseURL(urlSt string) *url.URL {
 	u, _ := url.Parse(urlSt)
 	return u
+}
+
+// GetHLSURLSPath get all paths related to an HLS url
+func GetHLSURLSPath(url *url.URL, folder, segmentURLPrefix string) ([]string, error) {
+	start := time.Now()
+	hlsFilename := PrefixedHlsFilename(segmentURLPrefix, url)
+	dst := filepath.Join(folder, hlsFilename)
+	defer func() {
+		elapsed := time.Since(start)
+		log.Debug.Printf("GetHLSURLSPath - elapsed - %s", elapsed)
+	}()
+	f, err := os.Open(dst)
+	if err != nil {
+		return nil, err
+	}
+	hlsBody, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+	urls := []string{dst}
+	for _, match := range re.FindAllString(string(hlsBody), -1) {
+		url := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(match))
+		urls = append(urls, filepath.Join(folder, url))
+	}
+	return urls, nil
 }
 
 // DownloadHLSURL download a url to a file
@@ -115,7 +155,7 @@ func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSu
 	if err != nil {
 		ds := DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "0", Status: "failed hls", Error: err.Error()}
 		ps.Pub(ds, DownloadStatusChannel)
-	
+
 		log.Debug.Printf("DownloadHLSPlaylist %v", err)
 		return err
 	}
@@ -126,12 +166,45 @@ func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSu
 	if err != nil {
 		ds = DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "0", Status: "failed hls", Error: err.Error()}
 		ps.Pub(ds, DownloadStatusChannel)
-	
+
 		return err
 	}
 
 	ds = DownloadStatus{URL: url, ID: idf[0], Segment: idf[1], Prefix: segmentURLPrefix, TempFilename: filename, Progress: "1", Status: "downloaded hls", Error: ""}
 	ps.Pub(ds, DownloadStatusChannel)
+	return nil
+}
+
+// RemoveHLSPlaylist removes a cached HLS playlist
+func RemoveHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSub) error {
+	urls, err := GetHLSURLSPath(mustParseURL(url), storage, segmentURLPrefix)
+	if err != nil {
+		if !strings.Contains(err.Error(), "no such file or directory") {
+			return err
+		}
+		return nil
+	}
+	for _, url := range urls[1:] {
+		if err := os.Remove(url); err != nil {
+			if !strings.Contains(err.Error(), "no such file or directory") {
+				ds := RemoveStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: "", Progress: "1", Status: "failed segment", Error: err.Error()}
+				ps.Pub(ds, RemoveStatusChannel)
+				return err
+			}
+		}
+		ds := DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: "", Progress: "1", Status: "remove segment", Error: ""}
+		ps.Pub(ds, RemoveStatusChannel)
+	}
+	err = os.Remove(urls[0])
+	if err != nil {
+		if !strings.Contains(err.Error(), "no such file or directory") {
+			ds := RemoveStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: "", Progress: "1", Status: "failed segment", Error: err.Error()}
+			ps.Pub(ds, RemoveStatusChannel)
+			return err
+		}
+	}
+	ds := RemoveStatus{URL: urls[0], Prefix: segmentURLPrefix, TempFilename: "", Progress: "1", Status: "remove index", Error: ""}
+	ps.Pub(ds, RemoveStatusChannel)
 	return nil
 }
 
