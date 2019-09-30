@@ -113,48 +113,6 @@ func TestDownloadHLSPlaylist(t *testing.T) {
 	}
 }
 
-func TestGetHLSURLSPath(t *testing.T) {
-	type args struct {
-		url              *url.URL
-		folder           string
-		segmentURLPrefix string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []string
-		wantErr bool
-	}{
-		{
-			"testdownloadURL",
-			args{
-				url: mustParseURL(
-					"https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/index.m3u8?ut=st=1561454833~exp=1561458433~acl=/hls/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/*~hmac=5a779364d449b9e06de80a3f947ee717e62d5ab6fc15c681daa795205761484b",
-				),
-				folder:           "./",
-				segmentURLPrefix: "http://127.0.0.1:7071/cache?r=1&file=",
-			},
-			[]string{"663a04ab0ff10ab97aeabec5e5b100875831f9730c33724ae198c354afd78911",
-				"f75003f07a42cf3b1de0dbb960f5af7418e07572f2ce161a7b8883f0dd3b3749",
-				"5bb56b5068188fbca5847d9467d42d24cd1f877de603319d037b4e8304c7aa54",
-			},
-			false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetHLSURLSPath(tt.args.url, tt.args.folder, tt.args.segmentURLPrefix)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetHLSURLSPath() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetHLSURLSPath() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestGetHLSSegments(t *testing.T) {
 	type args struct {
 		url              *url.URL
@@ -177,8 +135,8 @@ func TestGetHLSSegments(t *testing.T) {
 				segmentURLPrefix: "http://127.0.0.1:7071/cache?r=1&file=",
 			},
 			[]string{"663a04ab0ff10ab97aeabec5e5b100875831f9730c33724ae198c354afd78911",
-				"f75003f07a42cf3b1de0dbb960f5af7418e07572f2ce161a7b8883f0dd3b3749",
-				"f75003f07a42cf3b1de0dbb960f5af7418e07572f2ce161a7b8883f0dd3b3749",
+				"f9bd0d4f006cbb90e00602220fd5ee9117f81b72f1bf82e947a73059a574b5b1",
+				"5bb56b5068188fbca5847d9467d42d24cd1f877de603319d037b4e8304c7aa54",
 			},
 			false,
 		},

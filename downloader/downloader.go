@@ -57,35 +57,11 @@ func mustParseURL(urlSt string) *url.URL {
 	return u
 }
 
-// GetHLSURLSPath get all paths related to an HLS url
-func GetHLSURLSPath(url *url.URL, folder, segmentURLPrefix string) ([]string, error) {
-	start := time.Now()
-	hlsFilename := PrefixedHlsFilename(segmentURLPrefix, url)
-	dst := filepath.Join(folder, hlsFilename)
-	defer func() {
-		elapsed := time.Since(start)
-		log.Debug.Printf("GetHLSURLSPath - elapsed - %s", elapsed)
-	}()
-	f, err := os.Open(dst)
-	if err != nil {
-		return nil, err
-	}
-	hlsBody, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-	urls := []string{dst}
-	for _, match := range re.FindAllString(string(hlsBody), -1) {
-		url := PrefixedHlsFilename(segmentURLPrefix, mustParseURL(match))
-		urls = append(urls, filepath.Join(folder, url))
-	}
-	return urls, nil
-}
-
-// GetHLSSegments get segments un HLS file
+// GetHLSSegments get all paths related to an HLS url
 func GetHLSSegments(url *url.URL, folder, segmentURLPrefix string) ([]string, error) {
 	start := time.Now()
-	hlsFilename := PrefixedHlsFilename(segmentURLPrefix, url)
+	cleanURL := mustParseURL(strings.Replace(url.String(), segmentURLPrefix, "", -1))
+	hlsFilename := PrefixedHlsFilename(segmentURLPrefix, cleanURL)
 	dst := filepath.Join(folder, hlsFilename)
 	defer func() {
 		elapsed := time.Since(start)
@@ -100,9 +76,10 @@ func GetHLSSegments(url *url.URL, folder, segmentURLPrefix string) ([]string, er
 		return nil, err
 	}
 	urls := []string{dst}
+	println(string(hlsBody))
 	for _, match := range re.FindAllString(string(hlsBody), -1) {
-		url := mustParseURL(match)
-		urls = append(urls, filepath.Join(folder, hashKey(url.String())))
+		cleanURL := mustParseURL(strings.Replace(match, segmentURLPrefix, "", -1))
+		urls = append(urls, filepath.Join(folder, PrefixedHlsFilename(segmentURLPrefix, cleanURL)))
 	}
 	return urls, nil
 }
