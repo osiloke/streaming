@@ -192,7 +192,7 @@ func RemoveHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSub)
 				return err
 			}
 		}
-		ds := DownloadStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: "", Progress: "1", Status: "remove segment", Error: ""}
+		ds := RemoveStatus{URL: url, Prefix: segmentURLPrefix, TempFilename: "", Progress: "1", Status: "remove segment", Error: ""}
 		ps.Pub(ds, RemoveStatusChannel)
 	}
 	err = os.Remove(urls[0])
