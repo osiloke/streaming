@@ -79,8 +79,13 @@ func RemoveMultipleHLS(key string, urls []string, storage, segmentURLPrefix stri
 		}
 	}()
 	for _, url := range urls {
-		downloader.RemoveHLSPlaylist(url, storage, segmentURLPrefix, ps)
-		log.Debug.Printf("Finished removing - %s", url)
+		err := downloader.RemoveHLSPlaylist(url, storage, segmentURLPrefix, ps)
+		if err != nil {
+			log.Debug.Printf("Failed removing - %s - %s", url, err.Error())
+		} else {
+			log.Debug.Printf("Finished removing - %s", url)
+		}
+		dispatcher.SendMessageEvent("DOWNLOADER_REMOVE_HLS", url)
 	}
 	dispatcher.SendMessageEvent("DOWNLOADER_REMOVE_COMPLETE", key)
 	ps.Unsub(ch, downloader.RemoveStatusChannel)
