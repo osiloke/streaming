@@ -82,6 +82,31 @@ func GetHLSURLSPath(url *url.URL, folder, segmentURLPrefix string) ([]string, er
 	return urls, nil
 }
 
+// GetHLSSegments get segments un HLS file
+func GetHLSSegments(url *url.URL, folder, segmentURLPrefix string) ([]string, error) {
+	start := time.Now()
+	hlsFilename := PrefixedHlsFilename(segmentURLPrefix, url)
+	dst := filepath.Join(folder, hlsFilename)
+	defer func() {
+		elapsed := time.Since(start)
+		log.Debug.Printf("GetHLSSegments - elapsed - %s", elapsed)
+	}()
+	f, err := os.Open(dst)
+	if err != nil {
+		return nil, err
+	}
+	hlsBody, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+	urls := []string{dst}
+	for _, match := range re.FindAllString(string(hlsBody), -1) {
+		url := mustParseURL(match)
+		urls = append(urls, filepath.Join(folder, hashKey(url.String())))
+	}
+	return urls, nil
+}
+
 // DownloadHLSURL download a url to a file
 func DownloadHLSURL(url *url.URL, filename, folder, segmentURLPrefix string, ps *pubsub.PubSub) ([]byte, error) {
 	start := time.Now()
@@ -177,7 +202,7 @@ func DownloadHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSu
 
 // RemoveHLSPlaylist removes a cached HLS playlist
 func RemoveHLSPlaylist(url, storage, segmentURLPrefix string, ps *pubsub.PubSub) error {
-	urls, err := GetHLSURLSPath(mustParseURL(url), storage, segmentURLPrefix)
+	urls, err := GetHLSSegments(mustParseURL(url), storage, segmentURLPrefix)
 	if err != nil {
 		if !strings.Contains(err.Error(), "no such file or directory") {
 			return err

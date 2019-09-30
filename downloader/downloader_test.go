@@ -21,9 +21,9 @@ func hlsResponse() []byte {
 #EXT-X-VERSION:3
 #EXT-X-MEDIA-SEQUENCE:1
 #EXTINF:9.009,
-http://localhost:8888/cache?r=1&file=https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/segment-1-a1.ts
+http://127.0.0.1:8888/cache?r=1&file=https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/segment-1-a1.ts
 #EXTINF:1.150,
-http://localhost:8888/cache?r=1&file=https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/segment-2-a1.ts
+http://127.0.0.1:8888/cache?r=1&file=https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/segment-2-a1.ts
 #EXT-X-ENDLIST`)
 }
 
@@ -55,8 +55,8 @@ func TestDownloadHLSURL(t *testing.T) {
 					"https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/index.m3u8?ut=st=1561454833~exp=1561458433~acl=/hls/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/*~hmac=5a779364d449b9e06de80a3f947ee717e62d5ab6fc15c681daa795205761484b",
 				),
 				filename:  "test.m3u8",
-				folder:    "./t/",
-				proxyAddr: "http://localhost:8888/cache?r=1&file=",
+				folder:    "./",
+				proxyAddr: "http://127.0.0.1:7071/cache?r=1&file=",
 				ps:        ps,
 			},
 			hlsResponse(),
@@ -97,8 +97,8 @@ func TestDownloadHLSPlaylist(t *testing.T) {
 			"download",
 			args{
 				url:       "https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/index.m3u8?ut=st=1561454833~exp=1561458433~acl=/hls/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/*~hmac=5a779364d449b9e06de80a3f947ee717e62d5ab6fc15c681daa795205761484b",
-				storage:   "./t/",
-				proxyAddr: "http://localhost:8888/cache?r=1&file=",
+				storage:   "./",
+				proxyAddr: "http://127.0.0.1:7071/cache?r=1&file=",
 				ps:        ps,
 			},
 			false,
@@ -131,12 +131,12 @@ func TestGetHLSURLSPath(t *testing.T) {
 				url: mustParseURL(
 					"https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/index.m3u8?ut=st=1561454833~exp=1561458433~acl=/hls/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/*~hmac=5a779364d449b9e06de80a3f947ee717e62d5ab6fc15c681daa795205761484b",
 				),
-				folder:           "./t/",
-				segmentURLPrefix: "http://localhost:8888/cache?r=1&file=",
+				folder:           "./",
+				segmentURLPrefix: "http://127.0.0.1:7071/cache?r=1&file=",
 			},
-			[]string{"t/73d65d39a95a80c5874d043e8d248fdee38a1959f611f1fd7e490024302e58c9",
-				"t/5b1821643ca90a30fb5f31827521504252dc9366abd5b3b9a0221dd8af806e13",
-				"t/2fba1f499213fb508b9d2cf342921b307cf5be0ec9b650f2b489790b4a6d9e3c",
+			[]string{"663a04ab0ff10ab97aeabec5e5b100875831f9730c33724ae198c354afd78911",
+				"f75003f07a42cf3b1de0dbb960f5af7418e07572f2ce161a7b8883f0dd3b3749",
+				"5bb56b5068188fbca5847d9467d42d24cd1f877de603319d037b4e8304c7aa54",
 			},
 			false,
 		},
@@ -150,6 +150,48 @@ func TestGetHLSURLSPath(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetHLSURLSPath() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetHLSSegments(t *testing.T) {
+	type args struct {
+		url              *url.URL
+		folder           string
+		segmentURLPrefix string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		{
+			"GetHLSSegments",
+			args{
+				url: mustParseURL(
+					"https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/index.m3u8?ut=st=1561454833~exp=1561458433~acl=/hls/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/*~hmac=5a779364d449b9e06de80a3f947ee717e62d5ab6fc15c681daa795205761484b",
+				),
+				folder:           "./",
+				segmentURLPrefix: "http://127.0.0.1:7071/cache?r=1&file=",
+			},
+			[]string{"663a04ab0ff10ab97aeabec5e5b100875831f9730c33724ae198c354afd78911",
+				"f75003f07a42cf3b1de0dbb960f5af7418e07572f2ce161a7b8883f0dd3b3749",
+				"f75003f07a42cf3b1de0dbb960f5af7418e07572f2ce161a7b8883f0dd3b3749",
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetHLSSegments(tt.args.url, tt.args.folder, tt.args.segmentURLPrefix)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetHLSSegments() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetHLSSegments() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -172,8 +214,8 @@ func TestRemoveHLSPlaylist(t *testing.T) {
 			"remove",
 			args{
 				url:       "https://audio.udux.com/hls/0fa9a977f15c41508efe788b085751a5/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjE0NTg1NTIsImlwIjoiNDUuMjIyLjk4LjI0OSwxMDQuMTU0LjE2Mi4yMzciLCJyb2xlIjoiUzFmVHZtQWlmSXQyaVlRUTBCckIiLCJ0cmFja19pZCI6IkliUHVrUVpLUExRNENZU2VINzU4IiwiZGV2aWNlIjoiaW9zIiwiY291bnRyeSI6IlVTIiwiaWF0IjoxNTYxNDU0OTUyfQ.cuXW8o6liFeoCHvQLSIVSZCyxs_yjEU6hQKO9TiguAM/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/index.m3u8?ut=st=1561454833~exp=1561458433~acl=/hls/IbPukQZKPLQ4CYSeH758_trd_preview.mp4/*~hmac=5a779364d449b9e06de80a3f947ee717e62d5ab6fc15c681daa795205761484b",
-				storage:   "./t/",
-				proxyAddr: "http://localhost:8888/cache?r=1&file=",
+				storage:   "./",
+				proxyAddr: "http://127.0.0.1:7071/cache?r=1&file=",
 				ps:        ps,
 			},
 			false,
